@@ -1,0 +1,338 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <meta name="theme-color" content="#0b5f4b" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="Dry Creek Log" />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="apple-touch-icon" href="icon-192.svg" />
+  <title>Dry Creek Work Log</title>
+  <style>
+    :root {
+      color-scheme: light dark;
+      --bg: #f3f6f5;
+      --card: #ffffff;
+      --text: #17201d;
+      --muted: #66716d;
+      --primary: #0b5f4b;
+      --primary-2: #0e775e;
+      --danger: #a52a2a;
+      --border: #dce4e1;
+      --shadow: 0 10px 28px rgba(19, 48, 39, .10);
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #101614;
+        --card: #18211e;
+        --text: #eef5f2;
+        --muted: #a5b3ae;
+        --border: #2c3934;
+        --shadow: none;
+      }
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+    main { max-width: 760px; margin: 0 auto; padding: max(18px, env(safe-area-inset-top)) 16px max(32px, env(safe-area-inset-bottom)); }
+    header { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 16px; }
+    h1 { font-size: 28px; margin: 0; line-height: 1.1; }
+    .subtitle { margin: 5px 0 0; color: var(--muted); font-size: 14px; }
+    .status-pill { padding: 8px 11px; border-radius: 999px; background: #dfece7; color: #154f40; font-size: 13px; font-weight: 700; white-space: nowrap; }
+    @media (prefers-color-scheme: dark) { .status-pill { background: #263b34; color: #bfe0d4; } }
+    .card { background: var(--card); border: 1px solid var(--border); border-radius: 20px; padding: 18px; box-shadow: var(--shadow); margin-bottom: 14px; }
+    .active-title { display: flex; justify-content: space-between; gap: 12px; align-items: start; }
+    h2 { font-size: 19px; margin: 0 0 12px; }
+    label { display: block; font-size: 14px; color: var(--muted); margin: 12px 0 7px; }
+    textarea, input {
+      width: 100%; border: 1px solid var(--border); background: transparent; color: var(--text);
+      border-radius: 14px; padding: 13px; font: inherit;
+    }
+    textarea { min-height: 120px; resize: vertical; }
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    button {
+      width: 100%; border: 0; border-radius: 14px; padding: 14px 16px; font: inherit; font-weight: 750; cursor: pointer;
+    }
+    button.primary { background: var(--primary); color: white; }
+    button.primary:active { background: var(--primary-2); }
+    button.secondary { background: transparent; color: var(--text); border: 1px solid var(--border); }
+    button.danger { background: #fde8e8; color: var(--danger); }
+    @media (prefers-color-scheme: dark) { button.danger { background: #3b2323; } }
+    button:disabled { opacity: .45; cursor: not-allowed; }
+    .time { font-size: 30px; font-weight: 800; margin: 8px 0 2px; }
+    .muted { color: var(--muted); }
+    .row { display: flex; justify-content: space-between; gap: 12px; align-items: center; }
+    .visit { padding: 14px 0; border-top: 1px solid var(--border); }
+    .visit:first-child { border-top: 0; padding-top: 0; }
+    .visit:last-child { padding-bottom: 0; }
+    .visit-title { font-weight: 750; margin-bottom: 4px; }
+    .visit-meta { color: var(--muted); font-size: 14px; line-height: 1.45; }
+    .visit-notes { margin-top: 8px; white-space: pre-wrap; }
+    .small-btn { width: auto; padding: 8px 10px; border-radius: 10px; font-size: 13px; }
+    .empty { text-align: center; color: var(--muted); padding: 18px 4px; }
+    .notice { font-size: 13px; color: var(--muted); margin-top: 10px; line-height: 1.4; }
+  </style>
+</head>
+<body>
+<main>
+  <header>
+    <div>
+      <h1>Dry Creek Work Log</h1>
+      <p class="subtitle">Arrival, departure, notes, and time on site</p>
+    </div>
+    <div id="statusPill" class="status-pill">Ready</div>
+  </header>
+
+  <section class="card" id="activeCard">
+    <div class="active-title">
+      <h2 id="activeHeading">Start a visit</h2>
+      <span id="liveDuration" class="muted"></span>
+    </div>
+
+    <div id="notActivePanel">
+      <label for="startNotes">Work notes can be entered now or before finishing</label>
+      <textarea id="startNotes" placeholder="Weekly inspection, crew size, equipment, work performed…"></textarea>
+      <button id="startBtn" class="primary">Start Visit</button>
+    </div>
+
+    <div id="activePanel" hidden>
+      <div class="muted">Arrived</div>
+      <div class="time" id="arrivalTime">—</div>
+      <label for="activeNotes">Work performed</label>
+      <textarea id="activeNotes" placeholder="Add or update notes during the visit…"></textarea>
+      <div class="grid">
+        <button id="saveNotesBtn" class="secondary">Save Notes</button>
+        <button id="finishBtn" class="primary">Finish Visit</button>
+      </div>
+      <p class="notice">This app stores your log on this iPhone. Use Export CSV periodically as a backup.</p>
+    </div>
+  </section>
+
+  <section class="card">
+    <div class="row">
+      <h2>Visit history</h2>
+      <button id="exportBtn" class="secondary small-btn">Export CSV</button>
+    </div>
+    <div id="history"></div>
+  </section>
+
+  <section class="card">
+    <h2>Data tools</h2>
+    <div class="grid">
+      <button id="backupBtn" class="secondary">Export Backup</button>
+      <button id="importBtn" class="secondary">Import Backup</button>
+    </div>
+    <input id="importFile" type="file" accept="application/json" hidden />
+    <button id="clearBtn" class="danger" style="margin-top:10px;">Erase All Local Data</button>
+  </section>
+</main>
+
+<script>
+(() => {
+  const KEY = 'dryCreekWorkLog.v1';
+  const $ = (id) => document.getElementById(id);
+  let timer;
+
+  function load() {
+    try {
+      return JSON.parse(localStorage.getItem(KEY)) || { active: null, visits: [] };
+    } catch {
+      return { active: null, visits: [] };
+    }
+  }
+
+  function save(data) {
+    localStorage.setItem(KEY, JSON.stringify(data));
+  }
+
+  function fmtDateTime(iso) {
+    return new Intl.DateTimeFormat(undefined, {
+      month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit'
+    }).format(new Date(iso));
+  }
+
+  function fmtTime(iso) {
+    return new Intl.DateTimeFormat(undefined, { hour: 'numeric', minute: '2-digit' }).format(new Date(iso));
+  }
+
+  function durationMs(start, end = new Date().toISOString()) {
+    return Math.max(0, new Date(end) - new Date(start));
+  }
+
+  function fmtDuration(ms) {
+    const totalMinutes = Math.round(ms / 60000);
+    const hours = Math.floor(totalMinutes / 60);
+    const minutes = totalMinutes % 60;
+    if (hours && minutes) return `${hours} hr ${minutes} min`;
+    if (hours) return `${hours} hr`;
+    return `${minutes} min`;
+  }
+
+  function csvEscape(value) {
+    const text = String(value ?? '');
+    return `"${text.replaceAll('"', '""')}"`;
+  }
+
+  function download(name, content, type) {
+    const blob = new Blob([content], { type });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = name;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
+
+  function render() {
+    const data = load();
+    const active = data.active;
+    $('notActivePanel').hidden = !!active;
+    $('activePanel').hidden = !active;
+    $('activeHeading').textContent = active ? 'Visit in progress' : 'Start a visit';
+    $('statusPill').textContent = active ? 'On site' : 'Ready';
+
+    if (active) {
+      $('arrivalTime').textContent = fmtDateTime(active.arrival);
+      $('activeNotes').value = active.notes || '';
+      clearInterval(timer);
+      const update = () => $('liveDuration').textContent = fmtDuration(durationMs(active.arrival));
+      update();
+      timer = setInterval(update, 30000);
+    } else {
+      clearInterval(timer);
+      $('liveDuration').textContent = '';
+    }
+
+    const history = $('history');
+    history.innerHTML = '';
+    if (!data.visits.length) {
+      history.innerHTML = '<div class="empty">No completed visits yet.</div>';
+      return;
+    }
+
+    data.visits
+      .slice()
+      .sort((a, b) => new Date(b.arrival) - new Date(a.arrival))
+      .forEach((visit) => {
+        const div = document.createElement('div');
+        div.className = 'visit';
+        div.innerHTML = `
+          <div class="row">
+            <div>
+              <div class="visit-title">${fmtDateTime(visit.arrival)}</div>
+              <div class="visit-meta">Departed ${fmtTime(visit.departure)} · ${fmtDuration(durationMs(visit.arrival, visit.departure))}</div>
+            </div>
+            <button class="danger small-btn" data-delete="${visit.id}">Delete</button>
+          </div>
+          <div class="visit-notes"></div>`;
+        div.querySelector('.visit-notes').textContent = visit.notes || 'No notes';
+        history.appendChild(div);
+      });
+
+    history.querySelectorAll('[data-delete]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        if (!confirm('Delete this visit?')) return;
+        const d = load();
+        d.visits = d.visits.filter(v => v.id !== btn.dataset.delete);
+        save(d);
+        render();
+      });
+    });
+  }
+
+  $('startBtn').addEventListener('click', () => {
+    const data = load();
+    if (data.active) return;
+    data.active = {
+      id: crypto.randomUUID ? crypto.randomUUID() : String(Date.now()),
+      arrival: new Date().toISOString(),
+      notes: $('startNotes').value.trim()
+    };
+    save(data);
+    $('startNotes').value = '';
+    render();
+  });
+
+  $('saveNotesBtn').addEventListener('click', () => {
+    const data = load();
+    if (!data.active) return;
+    data.active.notes = $('activeNotes').value.trim();
+    save(data);
+    $('saveNotesBtn').textContent = 'Saved';
+    setTimeout(() => $('saveNotesBtn').textContent = 'Save Notes', 900);
+  });
+
+  $('finishBtn').addEventListener('click', () => {
+    const data = load();
+    if (!data.active) return;
+    data.active.notes = $('activeNotes').value.trim();
+    const completed = { ...data.active, departure: new Date().toISOString() };
+    data.visits.push(completed);
+    data.active = null;
+    save(data);
+    render();
+  });
+
+  $('exportBtn').addEventListener('click', () => {
+    const data = load();
+    const rows = [['Date','Arrival','Departure','Duration Minutes','Duration','Work Performed']];
+    data.visits
+      .slice()
+      .sort((a,b) => new Date(a.arrival) - new Date(b.arrival))
+      .forEach(v => {
+        const ms = durationMs(v.arrival, v.departure);
+        rows.push([
+          new Date(v.arrival).toLocaleDateString(),
+          fmtTime(v.arrival),
+          fmtTime(v.departure),
+          Math.round(ms / 60000),
+          fmtDuration(ms),
+          v.notes || ''
+        ]);
+      });
+    const csv = rows.map(row => row.map(csvEscape).join(',')).join('\r\n');
+    download(`Dry-Creek-Work-Log-${new Date().toISOString().slice(0,10)}.csv`, csv, 'text/csv;charset=utf-8');
+  });
+
+  $('backupBtn').addEventListener('click', () => {
+    download(`Dry-Creek-Backup-${new Date().toISOString().slice(0,10)}.json`, JSON.stringify(load(), null, 2), 'application/json');
+  });
+
+  $('importBtn').addEventListener('click', () => $('importFile').click());
+  $('importFile').addEventListener('change', async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      const parsed = JSON.parse(await file.text());
+      if (!parsed || !Array.isArray(parsed.visits)) throw new Error('Invalid backup');
+      save({ active: parsed.active || null, visits: parsed.visits });
+      render();
+    } catch {
+      alert('That does not appear to be a valid Dry Creek backup file.');
+    }
+    e.target.value = '';
+  });
+
+  $('clearBtn').addEventListener('click', () => {
+    if (!confirm('Erase every saved visit from this iPhone? This cannot be undone unless you exported a backup.')) return;
+    localStorage.removeItem(KEY);
+    render();
+  });
+
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(() => {}));
+  }
+
+  render();
+})();
+</script>
+</body>
+</html>
