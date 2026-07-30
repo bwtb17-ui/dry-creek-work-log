@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#195f38">
+  <meta name="description" content="Shared work log for Dry Creek Substation">
+  <title>Dry Creek Work Log</title>
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="icon" href="./icon-192.svg">
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+  <header class="app-header">
+    <div>
+      <h1>Dry Creek Work Log</h1>
+      <p>Shared arrival, departure, notes, equipment, and labor time</p>
+    </div>
+    <span id="connectionBadge" class="badge">Connecting…</span>
+  </header>
+
+  <main class="container">
+    <section id="setupCard" class="card hidden">
+      <h2>Connect Supabase</h2>
+      <p>Add your Supabase publishable key to <code>config.js</code>, then upload the updated file to GitHub.</p>
+    </section>
+
+    <section class="card">
+      <div class="section-heading">
+        <div>
+          <h2>Your worker</h2>
+          <p class="muted">This selection is remembered on this device.</p>
+        </div>
+        <button id="changeWorkerBtn" class="button secondary small hidden" type="button">Change</button>
+      </div>
+
+      <div id="workerPicker">
+        <label for="workerSelect">Select your name</label>
+        <select id="workerSelect">
+          <option value="">Loading workers…</option>
+        </select>
+        <button id="saveWorkerBtn" class="button" type="button">Use this worker</button>
+      </div>
+
+      <div id="selectedWorker" class="selected-worker hidden">
+        <span>Logging visits as</span>
+        <strong id="selectedWorkerName"></strong>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="section-heading">
+        <div>
+          <h2>Currently on site</h2>
+          <p class="muted">Active visits shared by the whole crew.</p>
+        </div>
+        <button id="refreshBtn" class="button secondary small" type="button">Refresh</button>
+      </div>
+      <div id="onSiteList" class="stack">
+        <p class="empty">Loading…</p>
+      </div>
+    </section>
+
+    <section id="startCard" class="card">
+      <h2>Start a visit</h2>
+      <div class="grid two">
+        <div>
+          <label for="crewSizeStart">Crew size</label>
+          <select id="crewSizeStart">
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+            <option value="4">4</option>
+            <option value="5">5+</option>
+          </select>
+        </div>
+        <div>
+          <label for="equipmentStart">Equipment used</label>
+          <input id="equipmentStart" type="text" placeholder="Truck, test set, bucket truck…">
+        </div>
+      </div>
+      <label for="notesStart">Work notes</label>
+      <textarea id="notesStart" rows="4" placeholder="Weekly inspection, maintenance performed, findings…"></textarea>
+      <button id="startVisitBtn" class="button primary large" type="button">Start Visit</button>
+    </section>
+
+    <section id="activeCard" class="card hidden">
+      <div class="active-banner">
+        <div>
+          <span class="status-dot"></span>
+          <strong>Visit in progress</strong>
+        </div>
+        <span id="elapsedTime">0 min</span>
+      </div>
+      <dl class="details">
+        <div><dt>Worker</dt><dd id="activeWorker"></dd></div>
+        <div><dt>Arrived</dt><dd id="activeArrival"></dd></div>
+      </dl>
+      <div class="grid two">
+        <div>
+          <label for="crewSizeFinish">Crew size</label>
+          <select id="crewSizeFinish">
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+            <option value="4">4</option>
+            <option value="5">5+</option>
+          </select>
+        </div>
+        <div>
+          <label for="equipmentFinish">Equipment used</label>
+          <input id="equipmentFinish" type="text">
+        </div>
+      </div>
+      <label for="notesFinish">Work notes</label>
+      <textarea id="notesFinish" rows="5"></textarea>
+      <button id="finishVisitBtn" class="button danger large" type="button">Finish Visit</button>
+    </section>
+
+    <section class="card">
+      <div class="stats-grid">
+        <div class="stat"><span>On site now</span><strong id="statOnSite">0</strong></div>
+        <div class="stat"><span>Completed today</span><strong id="statCompleted">0</strong></div>
+        <div class="stat"><span>Labor hours today</span><strong id="statHours">0.0</strong></div>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="section-heading">
+        <div>
+          <h2>Shared visit history</h2>
+          <p class="muted">Everyone using the app sees the same completed records.</p>
+        </div>
+        <button id="exportBtn" class="button secondary small" type="button">Export CSV</button>
+      </div>
+      <div class="grid two">
+        <div>
+          <label for="searchInput">Search</label>
+          <input id="searchInput" type="search" placeholder="Worker, notes, equipment…">
+        </div>
+        <div>
+          <label for="workerFilter">Worker filter</label>
+          <select id="workerFilter"><option value="">All workers</option></select>
+        </div>
+      </div>
+      <div id="historyList" class="stack">
+        <p class="empty">Loading…</p>
+      </div>
+    </section>
+
+    <p class="footer-note">Data is stored in the shared Supabase database. The selected worker and active visit ID are remembered only on this device.</p>
+  </main>
+
+  <div id="toast" class="toast hidden" role="status"></div>
+
+  <script type="module" src="./app.js"></script>
+</body>
+</html>
