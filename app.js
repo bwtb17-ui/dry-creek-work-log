@@ -48,6 +48,17 @@ function escapeHtml(value=""){ return String(value).replace(/[&<>"']/g,c=>({"&":
 
 async function init(){
   bindEvents();
+  if ("serviceWorker" in navigator) {
+
+    const registrations = await navigator.serviceWorker.getRegistrations();
+
+    for (const registration of registrations) {
+
+        await registration.unregister();
+
+    }
+
+}
   if(!configured){ $("setupCard").classList.remove("hidden"); setConnection("Setup needed","error"); return; }
   try{
     await Promise.all([loadWorkers(),loadVisits()]);
@@ -60,7 +71,6 @@ async function init(){
     $("historyList").innerHTML=`<p class="empty">${escapeHtml(error.message)}</p>`;
     showToast(error.message,7000);
   }
-  if("serviceWorker" in navigator) navigator.serviceWorker.register("./sw.js").catch(console.warn);
 }
 function bindEvents(){
   $("saveWorkerBtn").addEventListener("click",saveWorker); $("changeWorkerBtn").addEventListener("click",changeWorker);
