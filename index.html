@@ -3,18 +3,23 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#195f38">
+  <meta name="theme-color" content="#0b2239">
   <meta name="description" content="Shared work log for Dry Creek Substation">
   <title>Dry Creek Work Log</title>
   <link rel="manifest" href="./manifest.webmanifest">
-  <link rel="icon" href="./icon-192.svg">
+  <link rel="icon" href="./icon-192.png" type="image/png">
+  <link rel="apple-touch-icon" href="./icon-192.png">
   <link rel="stylesheet" href="./style.css">
 </head>
 <body>
   <header class="app-header">
-    <div>
-      <h1>Dry Creek Work Log</h1>
-      <p>Shared arrival, departure, notes, equipment, and labor time</p>
+    <div class="brand">
+      <img class="brand-icon" src="./icon-192.png" alt="Dry Creek Work Log eagle emblem">
+      <div class="brand-copy">
+        <p class="eyebrow">Substation Operations</p>
+        <h1>Dry Creek Work Log</h1>
+        <p class="subtitle">Shared arrival, departure, notes, equipment, and labor time</p>
+      </div>
     </div>
     <span id="connectionBadge" class="badge">Connecting…</span>
   </header>
@@ -28,6 +33,7 @@
     <section class="card">
       <div class="section-heading">
         <div>
+          <p class="section-kicker">Crew profile</p>
           <h2>Your worker</h2>
           <p class="muted">This selection is remembered on this device.</p>
         </div>
@@ -51,6 +57,7 @@
     <section class="card">
       <div class="section-heading">
         <div>
+          <p class="section-kicker">Live crew status</p>
           <h2>Currently on site</h2>
           <p class="muted">Active visits shared by the whole crew.</p>
         </div>
@@ -61,7 +68,8 @@
       </div>
     </section>
 
-    <section id="startCard" class="card">
+    <section id="startCard" class="card card-accent">
+      <p class="section-kicker">New record</p>
       <h2>Start a visit</h2>
       <div class="grid two">
         <div>
@@ -84,7 +92,7 @@
       <button id="startVisitBtn" class="button primary large" type="button">Start Visit</button>
     </section>
 
-    <section id="activeCard" class="card hidden">
+    <section id="activeCard" class="card active-card hidden">
       <div class="active-banner">
         <div>
           <span class="status-dot"></span>
@@ -117,7 +125,7 @@
       <button id="finishVisitBtn" class="button danger large" type="button">Finish Visit</button>
     </section>
 
-    <section class="card">
+    <section class="card stats-card">
       <div class="stats-grid">
         <div class="stat"><span>On site now</span><strong id="statOnSite">0</strong></div>
         <div class="stat"><span>Completed today</span><strong id="statCompleted">0</strong></div>
@@ -128,7 +136,8 @@
     <section class="card">
       <div class="section-heading">
         <div>
-          <h2>Shared visit history</h2>
+          <p class="section-kicker">Shared records</p>
+          <h2>Visit history</h2>
           <p class="muted">Everyone using the app sees the same completed records.</p>
         </div>
         <button id="exportBtn" class="button secondary small" type="button">Export CSV</button>
