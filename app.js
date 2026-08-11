@@ -79,9 +79,72 @@ function bindEvents(){
   $("searchInput").addEventListener("input",renderHistory); $("workerFilter").addEventListener("change",renderHistory);
 }
 async function loadWorkers(){ state.workers=await api("workers?select=id,name&order=name.asc"); }
-async function loadVisits(){
-  state.visits=await api("visits?select=*&order=arrival.desc&limit=500");
-  if(state.activeVisitId&&!state.visits.some(v=>v.id===state.activeVisitId&&!v.departure)){ state.activeVisitId=null; localStorage.removeItem("dc_active_visit_id"); }
+async async function loadVisits() {
+
+  state.visits = await api(
+
+    "visits?select=*&order=arrival.desc&limit=500"
+
+  );
+
+  // Keep the locally remembered visit if it is still open.
+
+  const rememberedVisit = state.activeVisitId
+
+    ? state.visits.find(
+
+        visit =>
+
+          visit.id === state.activeVisitId &&
+
+          !visit.departure
+
+      )
+
+    : null;
+
+  if (rememberedVisit) {
+
+    return;
+
+  }
+
+  // Clear an invalid or completed locally remembered visit.
+
+  state.activeVisitId = null;
+
+  localStorage.removeItem("dc_active_visit_id");
+
+  // Recover an unfinished visit belonging to the selected worker.
+
+  if (state.selectedWorker) {
+
+    const recoveredVisit = state.visits.find(
+
+      visit =>
+
+        visit.worker === state.selectedWorker &&
+
+        !visit.departure
+
+    );
+
+    if (recoveredVisit) {
+
+      state.activeVisitId = recoveredVisit.id;
+
+      localStorage.setItem(
+
+        "dc_active_visit_id",
+
+        String(recoveredVisit.id)
+
+      );
+
+    }
+
+  }
+
 }
 async function refreshData(){ setConnection("Refreshing…"); try{ await Promise.all([loadWorkers(),loadVisits()]); renderAll(); setConnection("Shared database ready","ready"); showToast("Shared log refreshed"); }catch(e){ setConnection("Refresh failed","error"); showToast(e.message,6000); } }
 function renderAll(){ renderWorkerControls(); renderOnSite(); renderActiveVisit(); renderStats(); renderHistory(); }
