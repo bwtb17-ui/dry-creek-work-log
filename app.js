@@ -79,7 +79,7 @@ function bindEvents(){
   $("searchInput").addEventListener("input",renderHistory); $("workerFilter").addEventListener("change",renderHistory);
 }
 async function loadWorkers(){ state.workers=await api("workers?select=id,name&order=name.asc"); }
-async async function loadVisits() {
+async function loadVisits() {
 
   state.visits = await api(
 
