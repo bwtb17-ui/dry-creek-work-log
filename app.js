@@ -174,7 +174,46 @@ function renderActiveVisit(){
 function updateElapsed(v){ $("elapsedTime").textContent=formatDuration(minutesBetween(v.arrival)); }
 function stopElapsedTimer(){ if(state.elapsedTimer)clearInterval(state.elapsedTimer); state.elapsedTimer=null; }
 async function startVisit(){
-  if(!state.selectedWorker)return showToast("Select your worker name first"); if(state.activeVisitId)return showToast("This device already has an active visit");
+
+  if(!state.selectedWorker)
+
+    return showToast("Select your worker name first");
+
+  // Refresh from the shared database before allowing a new visit.
+
+  await loadVisits();
+
+  const existingOpenVisit = state.visits.find(
+
+    visit =>
+
+      visit.worker === state.selectedWorker &&
+
+      !visit.departure
+
+  );
+
+  if(existingOpenVisit){
+
+    state.activeVisitId = existingOpenVisit.id;
+
+    localStorage.setItem(
+
+      "dc_active_visit_id",
+
+      String(existingOpenVisit.id)
+
+    );
+
+    renderAll();
+
+    return showToast(
+
+      "You already have an active visit. Reconnected to it."
+
+    );
+
+  }
   const payload={worker:state.selectedWorker,arrival:new Date().toISOString(),departure:null,duration_minutes:null,crew_size:Number($("crewSizeStart").value||1),equipment:$("equipmentStart").value.trim()||null,notes:$("notesStart").value.trim()||null,photo_urls:null};
   $("startVisitBtn").disabled=true;
   try{
