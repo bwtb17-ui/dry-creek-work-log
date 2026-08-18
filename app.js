@@ -221,7 +221,51 @@ async function startVisit(){
     if(!visit?.id)throw new Error("The visit was saved, but no visit ID was returned.");
     state.activeVisitId=visit.id; localStorage.setItem("dc_active_visit_id",String(visit.id)); $("notesStart").value=""; $("equipmentStart").value="";
     await loadVisits(); renderAll(); showToast("Visit started");
-  }catch(e){ console.error(e); showToast(e.message,7000); }finally{ $("startVisitBtn").disabled=false; }
+  } catch(e){
+
+  console.error(e);
+
+  await loadVisits();
+
+  const existingOpenVisit = state.visits.find(
+
+    visit =>
+
+      visit.worker === state.selectedWorker &&
+
+      !visit.departure
+
+  );
+
+  if(existingOpenVisit){
+
+    state.activeVisitId = existingOpenVisit.id;
+
+    localStorage.setItem(
+
+      "dc_active_visit_id",
+
+      String(existingOpenVisit.id)
+
+    );
+
+    renderAll();
+
+    showToast(
+
+      "You already have an active visit. Reconnected to it.",
+
+      5000
+
+    );
+
+    return;
+
+  }
+
+  showToast(e.message,7000);
+
+}finally{ $("startVisitBtn").disabled=false; }
 }
 async function finishVisit(){
   const v=activeVisit(); if(!v)return showToast("No active visit was found"); const departure=new Date();
