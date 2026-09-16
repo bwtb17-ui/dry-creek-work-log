@@ -336,7 +336,7 @@ function bindHistoryEditButtons(){
 
   document.querySelectorAll(".edit-visit-btn").forEach(btn=>{
 
-    btn.addEventListener("click",()=>{
+    btn.addEventListener("click",async()=>{
 
       const id=Number(btn.dataset.visitId);
 
@@ -350,28 +350,153 @@ function bindHistoryEditButtons(){
 
       }
 
-      const details=[
+      const worker=prompt("Worker:",visit.worker||"");
 
-        `Worker: ${visit.worker||"Unknown"}`,
+      if(worker===null)return;
 
-        `Arrival: ${formatDateTime(visit.arrival)}`,
+      const arrival=prompt(
 
-        `Departure: ${formatDateTime(visit.departure)}`,
+        "Arrival date/time:",
 
-        `Crew: ${visit.crew_size||1}`,
+        new Date(visit.arrival).toLocaleString()
 
-        `Equipment: ${visit.equipment||""}`,
+      );
 
-        `Notes: ${visit.notes||""}`
+      if(arrival===null)return;
 
-      ].join("\n");
+      const departure=prompt(
 
-      alert("Edit visit\n\n"+details);
+        "Departure date/time:",
+
+        new Date(visit.departure).toLocaleString()
+
+      );
+
+      if(departure===null)return;
+
+      const crew=prompt("Crew size:",visit.crew_size||1);
+
+      if(crew===null)return;
+
+      const equipment=prompt("Equipment:",visit.equipment||"");
+
+      if(equipment===null)return;
+
+      const notes=prompt("Notes:",visit.notes||"");
+
+      if(notes===null)return;
+
+      const arrivalDate=new Date(arrival);
+
+      const departureDate=new Date(departure);
+
+      if(
+
+        Number.isNaN(arrivalDate.getTime()) ||
+
+        Number.isNaN(departureDate.getTime())
+
+      ){
+
+        showToast("Arrival or departure date is not valid.",5000);
+
+        return;
+
+      }
+
+      if(departureDate<=arrivalDate){
+
+        showToast("Departure must be after arrival.",5000);
+
+        return;
+
+      }
+
+      const crewSize=Number(crew);
+
+      if(!Number.isFinite(crewSize)||crewSize<1){
+
+        showToast("Crew size must be at least 1.",5000);
+
+        return;
+
+      }
+
+      const durationMinutes=Math.round(
+
+        (departureDate-arrivalDate)/60000
+
+      );
+
+      const confirmed=confirm(
+
+        "Save these changes?\n\n"+
+
+        `Worker: ${worker}\n`+
+
+        `Arrival: ${arrivalDate.toLocaleString()}\n`+
+
+        `Departure: ${departureDate.toLocaleString()}\n`+
+
+        `Duration: ${formatDuration(durationMinutes)}\n`+
+
+        `Crew: ${crewSize}\n`+
+
+        `Equipment: ${equipment}\n`+
+
+        `Notes: ${notes}`
+
+      );
+
+      if(!confirmed)return;
+
+      try{
+
+        await api(`visits?id=eq.${id}`,{
+
+          method:"PATCH",
+
+          headers:{Prefer:"return=minimal"},
+
+          body:JSON.stringify({
+
+            worker:worker.trim(),
+
+            arrival:arrivalDate.toISOString(),
+
+            departure:departureDate.toISOString(),
+
+            duration_minutes:durationMinutes,
+
+            crew_size:crewSize,
+
+            equipment:equipment.trim(),
+
+            notes:notes.trim()
+
+          })
+
+        });
+
+        showToast("Visit updated.",3000);
+
+        await loadVisits();
+
+        renderAll();
+
+      }catch(e){
+
+        console.error(e);
+
+        showToast(e.message,7000);
+
+      }
 
     });
 
   });
 
+}
 }
 
 function exportCsv(){ const rows=filteredCompletedVisits(); if(!rows.length)return showToast("There are no completed visits to export"); const headers=["Worker","Arrival","Departure","Duration Minutes","Crew Size","Labor Minutes","Equipment","Notes"]; const lines=[headers,...rows.map(v=>[v.worker||"",v.arrival||"",v.departure||"",v.duration_minutes||0,v.crew_size||1,(v.duration_minutes||0)*(v.crew_size||1),v.equipment||"",v.notes||""])].map(r=>r.map(csvEscape).join(",")); const blob=new Blob([lines.join("\n")],{type:"text/csv;charset=utf-8"}); const url=URL.createObjectURL(blob),a=document.createElement("a"); a.href=url;a.download=`dry-creek-visits-${new Date().toISOString().slice(0,10)}.csv`;a.click();URL.revokeObjectURL(url); }
