@@ -279,7 +279,57 @@ function renderStats(){
   $("statCompleted").textContent=done.length; const mins=done.reduce((s,v)=>s+(Number(v.duration_minutes)||0)*(Number(v.crew_size)||1),0); $("statHours").textContent=(mins/60).toFixed(1);
 }
 function filteredCompletedVisits(){ const q=$("searchInput").value.trim().toLowerCase(),worker=$("workerFilter").value; return state.visits.filter(v=>v.departure).filter(v=>!worker||v.worker===worker).filter(v=>!q||[v.worker,v.notes,v.equipment,formatDateTime(v.arrival)].some(x=>String(x||"").toLowerCase().includes(q))); }
-function renderHistory(){ const rows=filteredCompletedVisits(); $("historyList").innerHTML=rows.length?rows.map(v=>`<article class="history-item"><div class="section-heading"><div><div class="item-title">${escapeHtml(v.worker||"Unknown")}</div><div class="item-meta">${formatDateTime(v.arrival)} → ${formatDateTime(v.departure)}</div></div><strong>${formatDuration(Number(v.duration_minutes)||0)}</strong></div><div class="item-meta">Crew: ${v.crew_size||1}${v.equipment?` · Equipment: ${escapeHtml(v.equipment)}`:""}</div>${v.notes?`<div class="item-notes">${escapeHtml(v.notes)}</div>`:""}</article>`).join(""):'<p class="empty">No completed visits match the current filter.</p>'; }
+function renderHistory(){
+
+  const rows=filteredCompletedVisits();
+
+  $("historyList").innerHTML=rows.length
+
+    ? rows.map(v=>`
+
+      <article class="history-item">
+
+        <div class="section-heading">
+
+          <div>
+
+            <div class="item-title">${escapeHtml(v.worker||"Unknown")}</div>
+
+            <div class="item-meta">
+
+              ${formatDateTime(v.arrival)} → ${formatDateTime(v.departure)}
+
+            </div>
+
+            ${formatDuration(Number(v.duration_minutes)||0)}
+
+            <div class="item-meta">
+
+              Crew: ${v.crew_size||1}
+
+              ${v.equipment ? ` · Equipment: ${escapeHtml(v.equipment)}` : ""}
+
+            </div>
+
+            ${v.notes ? `<div class="item-notes">${escapeHtml(v.notes)}</div>` : ""}
+
+          </div>
+
+          <button type="button" class="secondary-btn edit-visit-btn" data-visit-id="${v.id}">
+
+            Edit
+
+          </button>
+
+        </div>
+
+      </article>
+
+    `).join("")
+
+    : `<p class="empty">No completed visits match the current filter.</p>`;
+
+}
 function exportCsv(){ const rows=filteredCompletedVisits(); if(!rows.length)return showToast("There are no completed visits to export"); const headers=["Worker","Arrival","Departure","Duration Minutes","Crew Size","Labor Minutes","Equipment","Notes"]; const lines=[headers,...rows.map(v=>[v.worker||"",v.arrival||"",v.departure||"",v.duration_minutes||0,v.crew_size||1,(v.duration_minutes||0)*(v.crew_size||1),v.equipment||"",v.notes||""])].map(r=>r.map(csvEscape).join(",")); const blob=new Blob([lines.join("\n")],{type:"text/csv;charset=utf-8"}); const url=URL.createObjectURL(blob),a=document.createElement("a"); a.href=url;a.download=`dry-creek-visits-${new Date().toISOString().slice(0,10)}.csv`;a.click();URL.revokeObjectURL(url); }
 function csvEscape(value){ const t=String(value??""); return `"${t.replace(/"/g,'""')}"`; }
 init();
