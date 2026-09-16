@@ -328,8 +328,52 @@ function renderHistory(){
     `).join("")
 
     : `<p class="empty">No completed visits match the current filter.</p>`;
+  
+bindHistoryEditButtons();
+  
+}
+function bindHistoryEditButtons(){
+
+  document.querySelectorAll(".edit-visit-btn").forEach(btn=>{
+
+    btn.addEventListener("click",()=>{
+
+      const id=Number(btn.dataset.visitId);
+
+      const visit=state.visits.find(v=>Number(v.id)===id);
+
+      if(!visit){
+
+        showToast("Visit record not found.",5000);
+
+        return;
+
+      }
+
+      const details=[
+
+        `Worker: ${visit.worker||"Unknown"}`,
+
+        `Arrival: ${formatDateTime(visit.arrival)}`,
+
+        `Departure: ${formatDateTime(visit.departure)}`,
+
+        `Crew: ${visit.crew_size||1}`,
+
+        `Equipment: ${visit.equipment||""}`,
+
+        `Notes: ${visit.notes||""}`
+
+      ].join("\n");
+
+      alert("Edit visit\n\n"+details);
+
+    });
+
+  });
 
 }
+
 function exportCsv(){ const rows=filteredCompletedVisits(); if(!rows.length)return showToast("There are no completed visits to export"); const headers=["Worker","Arrival","Departure","Duration Minutes","Crew Size","Labor Minutes","Equipment","Notes"]; const lines=[headers,...rows.map(v=>[v.worker||"",v.arrival||"",v.departure||"",v.duration_minutes||0,v.crew_size||1,(v.duration_minutes||0)*(v.crew_size||1),v.equipment||"",v.notes||""])].map(r=>r.map(csvEscape).join(",")); const blob=new Blob([lines.join("\n")],{type:"text/csv;charset=utf-8"}); const url=URL.createObjectURL(blob),a=document.createElement("a"); a.href=url;a.download=`dry-creek-visits-${new Date().toISOString().slice(0,10)}.csv`;a.click();URL.revokeObjectURL(url); }
 function csvEscape(value){ const t=String(value??""); return `"${t.replace(/"/g,'""')}"`; }
 init();
